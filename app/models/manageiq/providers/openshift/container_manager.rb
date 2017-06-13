@@ -8,6 +8,8 @@ class ManageIQ::Providers::Openshift::ContainerManager < ManageIQ::Providers::Co
   require_nested :RefreshWorker
   require_nested :Refresher
 
+  has_many :openshift_container_images, :foreign_key => :ems_id, :dependent => :destroy
+
   def self.ems_type
     @ems_type ||= "openshift".freeze
   end

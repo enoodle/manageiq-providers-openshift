@@ -14,7 +14,12 @@ module ManageIQ::Providers
       end
 
       def get_openshift_images(inventory)
-        inventory["image"].each { |img| parse_openshift_image(img) }
+        #inventory["image"].each { |img| parse_openshift_image(img) }
+        key = path_for_entity("openshift_image")
+        process_collection(inventory["image"], key) { |n| parse_openshift_image(n) }
+
+        # remove all openshift images from container_image list
+        @data[:container_images].delete_if { |ci| ci[:ems_ref] }
       end
 
       def get_builds(inventory)
@@ -174,6 +179,8 @@ module ManageIQ::Providers
         id = openshift_image[:dockerImageReference] || openshift_image[:metadata][:name]
         ref = "#{ContainerImage::DOCKER_PULLABLE_PREFIX}#{id}"
         new_result = parse_container_image(id, ref)
+
+        new_result.merge!(:ems_ref => openshift_image.metadata.uid)
 
         if openshift_image[:dockerImageManifest].present?
           begin
